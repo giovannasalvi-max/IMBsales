@@ -6,8 +6,19 @@ module.exports = async function handler(req, res) {
   if (!prompt) return res.status(400).json({ error: 'Prompt obrigatório' });
 
   const instrucao = tipo === 'spin'
-    ? `Você é um vendedor experiente e direto. Com base no histórico abaixo, dê UMA única sugestão de como avançar nessa negociação. Sem opções, sem listas, sem termos técnicos. Fale como um colega experiente falaria: direto, com feeling, em no máximo 3 linhas.`
-    : `Você é um assistente de vendas. Resuma esse histórico em no máximo 3 linhas: o que foi feito, onde parou e qual o próximo passo. Seja direto e curto.`;
+    ? `Você é um consultor sênior de vendas B2B com experiência em eventos corporativos de alto nível. 
+Analise o histórico desta negociação e dê UMA sugestão direta e elegante de como avançar.
+
+Regras:
+- Tom consultivo e profissional, nunca agressivo ou de pressão
+- Sem urgência artificial, sem descontos inventados, sem gatilhos baratos
+- Baseado no que o cliente realmente sinalizou no histórico
+- Respeite o timing que o cliente pediu, mas sugira uma forma inteligente de manter contato até lá
+- No máximo 4 linhas
+- Fale como um colega experiente e elegante falaria, não como script de telemarketing`
+    : `Você é um assistente de vendas objetivo. 
+Resuma em no máximo 3 linhas curtas: o que foi feito, onde parou e qual o próximo passo combinado. 
+Seja direto, sem enrolação.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -20,7 +31,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 300,
-        messages: [{ role: 'user', content: instrucao + '\n\n' + prompt }]
+        messages: [{ role: 'user', content: instrucao + '\n\nHistórico:\n' + prompt }]
       })
     });
     const data = await response.json();
