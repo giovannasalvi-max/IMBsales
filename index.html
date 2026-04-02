@@ -41,6 +41,12 @@ select, input[type="text"], input[type="date"], input[type="tel"], input[type="e
 select:focus, input:focus, textarea:focus { border-color: var(--accent); }
 .btn-primary { background: var(--text); color: #F5F3EE; border: none; border-radius: var(--r); padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; }
 .btn-primary:hover { opacity: 0.85; }
+
+/* VIEW TOGGLE */
+.view-toggle { display: flex; gap: 4px; background: var(--surface2); border-radius: var(--r); padding: 3px; }
+.view-btn { background: none; border: none; border-radius: 7px; padding: 5px 14px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--muted); }
+.view-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
 .table-wrap { padding: 0 1.5rem 1.5rem; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--r); overflow: hidden; border: 1px solid var(--border); font-size: 13px; }
 thead { background: var(--surface2); }
@@ -62,6 +68,23 @@ tr:hover td { background: var(--surface2); }
 .btn-del:hover { background: #FBE8E8; color: var(--danger); }
 .contact-info { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .contact-info a { color: var(--info); text-decoration: none; }
+
+/* VISÃO POR RESPONSÁVEL */
+.resp-view { padding: 0 1.5rem 1.5rem; }
+.resp-section { margin-bottom: 1.5rem; }
+.resp-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); }
+.resp-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--text); color: #F5F3EE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.resp-name { font-weight: 600; font-size: 14px; }
+.resp-count { font-size: 12px; color: var(--muted); }
+.resp-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.resp-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; cursor: pointer; transition: border-color 0.15s; }
+.resp-card:hover { border-color: var(--accent); }
+.resp-card-empresa { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.resp-card-contato { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.resp-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.resp-card-last { font-size: 11px; color: var(--muted); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* MODAL */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
 .overlay.open { display: flex; }
 .modal { background: var(--surface); border-radius: 14px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
@@ -106,6 +129,13 @@ tr:hover td { background: var(--surface2); }
 .field textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
 .add-form-wrap { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.25rem 1.5rem; display: none; }
 .add-form-titulo { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1rem; color: var(--muted); }
+
+/* EDITAR DADOS */
+.edit-dados-form { background: var(--surface2); border-radius: var(--r); padding: 14px; margin-bottom: 1rem; display: none; }
+.edit-dados-titulo { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 12px; font-weight: 500; }
+.btn-edit-dados { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; color: var(--muted); margin-bottom: 1rem; }
+.btn-edit-dados:hover { background: var(--surface2); }
+
 @media (max-width: 600px) { .fg, .fg-3 { grid-template-columns: 1fr; } .metrics-bar { grid-template-columns: repeat(3, 1fr); } .metric { border-right: none; border-bottom: 1px solid var(--border); } }
 </style>
 </head>
@@ -147,6 +177,10 @@ tr:hover td { background: var(--surface2); }
         <option>André</option><option>Gabriel</option><option>Giovanna</option>
       </select>
       <input type="text" id="fil-busca" placeholder="Buscar empresa..." oninput="render()" style="min-width:160px;"/>
+      <div class="view-toggle">
+        <button class="view-btn active" id="btn-view-lista" onclick="setView('lista')">Lista</button>
+        <button class="view-btn" id="btn-view-resp" onclick="setView('resp')">Por responsável</button>
+      </div>
     </div>
     <button class="btn-primary" onclick="toggleAddForm()">+ Adicionar empresa</button>
   </div>
@@ -186,12 +220,14 @@ tr:hover td { background: var(--surface2); }
     </div>
     <button class="btn-primary" onclick="addEmpresa()">Salvar empresa</button>
   </div>
-  <div class="table-wrap">
+
+  <div class="table-wrap" id="view-lista">
     <table>
       <thead><tr><th>Empresa</th><th>Contato</th><th>Segmento</th><th>Responsável</th><th>Status</th><th>Última interação</th><th></th></tr></thead>
       <tbody id="tbody"><tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--muted);">Carregando...</td></tr></tbody>
     </table>
   </div>
+  <div class="resp-view" id="view-resp" style="display:none;"></div>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeOverlay(event)">
@@ -205,6 +241,46 @@ tr:hover td { background: var(--surface2); }
       <button class="btn-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
+
+      <button class="btn-edit-dados" onclick="toggleEditDados()">editar dados do contato</button>
+
+      <div class="edit-dados-form" id="editDadosForm">
+        <div class="edit-dados-titulo">Editar dados</div>
+        <div class="fg">
+          <div class="field"><label>Empresa</label><input id="ed-empresa" /></div>
+          <div class="field"><label>Contato</label><input id="ed-contato" /></div>
+        </div>
+        <div class="fg">
+          <div class="field"><label>Telefone</label><input type="tel" id="ed-telefone" /></div>
+          <div class="field"><label>E-mail</label><input type="email" id="ed-email" /></div>
+        </div>
+        <div class="fg fg-3" style="margin-bottom:12px;">
+          <div class="field"><label>Segmento</label>
+            <select id="ed-segmento">
+              <option value="">— segmento —</option>
+              <option>Serviços Financeiros</option><option>Indústrias</option><option>Varejo e Atacado</option>
+              <option>Comércio Eletrônico</option><option>Saúde</option><option>Energia e Utilities</option>
+              <option>Agronegócio</option><option>Educação</option><option>Transporte e Logística</option>
+              <option>Construção Civil e Imobiliária</option><option>Tecnologia</option><option>Outro</option>
+            </select>
+          </div>
+          <div class="field"><label>Responsável</label>
+            <select id="ed-resp">
+              <option value="">— responsável —</option>
+              <option>André</option><option>Gabriel</option><option>Giovanna</option>
+            </select>
+          </div>
+          <div class="field"><label>Status</label>
+            <select id="ed-status-dados">
+              <option value="identificada">Identificada</option><option value="abordada">Abordada</option>
+              <option value="em-negociacao">Em negociação</option><option value="proposta">Proposta enviada</option>
+              <option value="fechada">Fechada</option><option value="perdida">Perdida</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="salvarEdicao()">Salvar alterações</button>
+      </div>
+
       <div class="status-row">
         <label>Status:</label>
         <select id="m-status" onchange="updateStatus()" style="width:auto;">
@@ -218,7 +294,7 @@ tr:hover td { background: var(--surface2); }
           <span class="ia-dot"></span><span id="label-resumo">Resumir negociação</span>
         </button>
         <button class="btn-ia btn-ia-spin" id="btnSpin" onclick="gerarSpin()">
-          <span class="ia-dot ia-dot-green"></span><span id="label-spin">Como avançar (SPIN)</span>
+          <span class="ia-dot ia-dot-green"></span><span id="label-spin">Como avançar</span>
         </button>
       </div>
       <div id="resumo-box" style="display:none;"></div>
@@ -259,7 +335,8 @@ const firebaseConfig = {
 };
 const STATUS_LABELS = {'identificada':'Identificada','abordada':'Abordada','em-negociacao':'Em negociação','proposta':'Proposta enviada','fechada':'Fechada','perdida':'Perdida'};
 const STATUS_ORDER = ['identificada','abordada','em-negociacao','proposta','fechada','perdida'];
-let db, data = [], currentId = null;
+const RESPONSAVEIS = ['André','Gabriel','Giovanna'];
+let db, data = [], currentId = null, currentView = 'lista';
 
 window.fazerLogin = () => {
   if (document.getElementById('senha-input').value === SENHA) {
@@ -288,6 +365,15 @@ if (sessionStorage.getItem('imb_auth')==='1') {
   document.getElementById('app').style.display='block';
   iniciar();
 }
+
+window.setView = (v) => {
+  currentView = v;
+  document.getElementById('view-lista').style.display = v==='lista' ? 'block' : 'none';
+  document.getElementById('view-resp').style.display = v==='resp' ? 'block' : 'none';
+  document.getElementById('btn-view-lista').classList.toggle('active', v==='lista');
+  document.getElementById('btn-view-resp').classList.toggle('active', v==='resp');
+  render();
+};
 
 window.toggleAddForm = () => {
   const w = document.getElementById('addFormWrap');
@@ -328,19 +414,59 @@ window.openModal = (id) => {
   document.getElementById('ne-data').value = new Date().toISOString().slice(0,10);
   document.getElementById('resumo-box').style.display='none';
   document.getElementById('spin-box').style.display='none';
+  document.getElementById('editDadosForm').style.display='none';
   document.getElementById('btnResumo').disabled=false;
   document.getElementById('btnSpin').disabled=false;
   document.getElementById('label-resumo').textContent='Resumir negociação';
-  document.getElementById('label-spin').textContent='Como avançar (SPIN)';
+  document.getElementById('label-spin').textContent='Como avançar';
   renderHist(row);
   document.getElementById('overlay').classList.add('open');
 };
 window.closeModal = () => { document.getElementById('overlay').classList.remove('open'); currentId=null; };
 window.closeOverlay = (e) => { if(e.target===document.getElementById('overlay')) window.closeModal(); };
+
+window.toggleEditDados = () => {
+  const f = document.getElementById('editDadosForm');
+  if (f.style.display==='none'||!f.style.display) {
+    const row = data.find(d=>d._id===currentId); if(!row) return;
+    document.getElementById('ed-empresa').value = row.empresa||'';
+    document.getElementById('ed-contato').value = row.contato||'';
+    document.getElementById('ed-telefone').value = row.telefone||'';
+    document.getElementById('ed-email').value = row.email||'';
+    document.getElementById('ed-segmento').value = row.segmento||'';
+    document.getElementById('ed-resp').value = row.resp||'';
+    document.getElementById('ed-status-dados').value = row.status||'identificada';
+    f.style.display='block';
+  } else {
+    f.style.display='none';
+  }
+};
+
+window.salvarEdicao = async () => {
+  if(!currentId) return;
+  const updates = {
+    empresa: document.getElementById('ed-empresa').value.trim(),
+    contato: document.getElementById('ed-contato').value.trim(),
+    telefone: document.getElementById('ed-telefone').value.trim(),
+    email: document.getElementById('ed-email').value.trim(),
+    segmento: document.getElementById('ed-segmento').value,
+    resp: document.getElementById('ed-resp').value,
+    status: document.getElementById('ed-status-dados').value,
+  };
+  await updateDoc(doc(db,'empresas',currentId), updates);
+  document.getElementById('m-empresa').textContent = updates.empresa;
+  document.getElementById('m-contato').textContent = updates.contato;
+  document.getElementById('m-status').value = updates.status;
+  const ci = document.getElementById('m-contact-info');
+  ci.innerHTML = [updates.telefone?`<a href="tel:${updates.telefone}">${updates.telefone}</a>`:'', updates.email?`<a href="mailto:${updates.email}">${updates.email}</a>`:''].filter(Boolean).join(' · ');
+  document.getElementById('editDadosForm').style.display='none';
+};
+
 window.updateStatus = async () => {
   if(!currentId) return;
   await updateDoc(doc(db,'empresas',currentId),{status:document.getElementById('m-status').value});
 };
+
 window.addEntry = async () => {
   const row = data.find(d=>d._id===currentId); if(!row) return;
   const nos = document.getElementById('ne-nos').value.trim();
@@ -366,12 +492,12 @@ function buildHist(row) {
   }).join('\n');
 }
 
-async function chamarIA(prompt, btnId, labelId, loadingText) {
+async function chamarIA(prompt, tipo, btnId, labelId, loadingText) {
   const btn=document.getElementById(btnId), label=document.getElementById(labelId);
   btn.disabled=true;
   label.innerHTML=`<span style="display:inline-flex;align-items:center;gap:6px;"><span class="spinner"></span>${loadingText}</span>`;
   try {
-    const res = await fetch('/api/resumo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    const res = await fetch('/api/resumo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt, tipo})});
     const json = await res.json();
     return json.texto||'Não foi possível gerar a resposta.';
   } catch(e) { return 'Erro ao conectar com a IA. Tente novamente.'; }
@@ -381,22 +507,22 @@ async function chamarIA(prompt, btnId, labelId, loadingText) {
 window.gerarResumo = async () => {
   const row=data.find(d=>d._id===currentId); if(!row) return;
   if(!row.historico?.length){alert('Nenhuma interação registrada.');return;}
-  const prompt=`Você é assistente de vendas do Innovation Meeting Brasil, evento B2B com mais de 150 CIOs, CTOs, CISOs no Enotel Resort Porto de Galinhas, 30 jul a 2 ago 2026.\n\nEmpresa: "${row.empresa}"${row.contato?`, contato: ${row.contato}`:''}${row.email?`, email: ${row.email}`:''}${row.telefone?`, tel: ${row.telefone}`:''}. Status: ${STATUS_LABELS[row.status]}.\n\n${buildHist(row)}\n\nResumo executivo (máx 5 linhas) cobrindo: 1) em que pé está a negociação 2) interesse ou resistência 3) próximo passo urgente. Só o resumo, sem títulos.`;
-  const texto=await chamarIA(prompt,'btnResumo','label-resumo','Analisando...');
+  const prompt=`Empresa: "${row.empresa}". Status: ${STATUS_LABELS[row.status]}.\n\n${buildHist(row)}`;
+  const texto=await chamarIA(prompt,'resumo','btnResumo','label-resumo','Resumindo...');
   document.getElementById('label-resumo').textContent='Resumir negociação';
   const box=document.getElementById('resumo-box');
-  box.innerHTML=`<div class="resumo-titulo">Resumo da negociação</div><div>${texto}</div>`;
+  box.innerHTML=`<div class="resumo-titulo">Resumo</div><div>${texto}</div>`;
   box.className='resumo-box'; box.style.display='block';
 };
 
 window.gerarSpin = async () => {
   const row=data.find(d=>d._id===currentId); if(!row) return;
-  const hist=row.historico?.length?buildHist(row):'Nenhuma interação registrada ainda.';
-  const prompt=`Você é especialista em SPIN Selling B2B, auxiliando a equipe do Innovation Meeting Brasil — evento exclusivo de patrocínio com mais de 150 CIOs, CTOs, CISOs no Enotel Resort Porto de Galinhas, 30 jul a 2 ago 2026.\n\nEmpresa: "${row.empresa}" | Contato: ${row.contato||'não informado'} | Email: ${row.email||'não informado'} | Tel: ${row.telefone||'não informado'} | Segmento: ${row.segmento||'não informado'} | Status: ${STATUS_LABELS[row.status]}\n\nHistórico:\n${hist}\n\nResponda em português com:\n1. QUANDO retornar o contato (dia e horário ideal)\n2. PERGUNTAS SPIN para esta situação específica (Situação, Problema, Implicação, Necessidade)\n3. ARGUMENTO PRINCIPAL para avançar com este lead agora\n\nSeja direto e específico para esta empresa.`;
-  const texto=await chamarIA(prompt,'btnSpin','label-spin','Calculando estratégia...');
-  document.getElementById('label-spin').textContent='Como avançar (SPIN)';
+  const hist=row.historico?.length?buildHist(row):'Nenhuma interação ainda.';
+  const prompt=`Empresa: "${row.empresa}" | Contato: ${row.contato||'?'} | Segmento: ${row.segmento||'?'} | Status: ${STATUS_LABELS[row.status]}\n\n${hist}`;
+  const texto=await chamarIA(prompt,'spin','btnSpin','label-spin','Analisando...');
+  document.getElementById('label-spin').textContent='Como avançar';
   const box=document.getElementById('spin-box');
-  box.innerHTML=`<div class="spin-titulo">Estratégia SPIN Selling</div><div style="white-space:pre-wrap;">${texto}</div>`;
+  box.innerHTML=`<div class="spin-titulo">Como avançar</div><div style="white-space:pre-wrap;">${texto}</div>`;
   box.className='spin-box'; box.style.display='block';
 };
 
@@ -419,27 +545,58 @@ function lastInteracao(row) {
   return (last.data?last.data+' · ':'')+msg.slice(0,50)+(msg.length>50?'...':'');
 }
 
+function getInitials(name) {
+  return (name||'?').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+}
+
 window.render = () => {
   const fs=document.getElementById('fil-status').value;
   const fr=document.getElementById('fil-resp').value;
   const fb=document.getElementById('fil-busca').value.toLowerCase();
   const filtered=data.filter(d=>(!fs||d.status===fs)&&(!fr||d.resp===fr)&&(!fb||d.empresa?.toLowerCase().includes(fb)||(d.contato||'').toLowerCase().includes(fb)));
+
   const counts={};
   STATUS_ORDER.forEach(s=>counts[s]=0);
   data.forEach(d=>{if(counts[d.status]!==undefined)counts[d.status]++;});
   document.getElementById('metrics').innerHTML=STATUS_ORDER.map(s=>`<div class="metric"><div class="metric-label">${STATUS_LABELS[s]}</div><div class="metric-val">${counts[s]}</div></div>`).join('');
-  const tb=document.getElementById('tbody');
-  if(!filtered.length){tb.innerHTML=`<tr class="empty-row"><td colspan="7">Nenhuma empresa cadastrada ainda.</td></tr>`;return;}
-  tb.innerHTML=filtered.map(d=>`
-    <tr>
-      <td style="font-weight:600;">${d.empresa}</td>
-      <td><div>${d.contato||'—'}</div>${d.telefone||d.email?`<div class="contact-info">${[d.telefone?`<a href="tel:${d.telefone}">${d.telefone}</a>`:'',d.email?`<a href="mailto:${d.email}">${d.email}</a>`:''].filter(Boolean).join(' · ')}</div>`:''}</td>
-      <td style="color:var(--muted);">${d.segmento||'—'}</td>
-      <td>${d.resp||'—'}</td>
-      <td><span class="badge b-${d.status}">${STATUS_LABELS[d.status]}</span></td>
-      <td style="font-size:12px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastInteracao(d)}</td>
-      <td style="white-space:nowrap;"><button class="btn-ver" onclick="openModal('${d._id}')">ver</button> <button class="btn-del" onclick="delRow('${d._id}')">✕</button></td>
-    </tr>`).join('');
+
+  if (currentView === 'lista') {
+    const tb=document.getElementById('tbody');
+    if(!filtered.length){tb.innerHTML=`<tr class="empty-row"><td colspan="7">Nenhuma empresa cadastrada ainda.</td></tr>`;return;}
+    tb.innerHTML=filtered.map(d=>`
+      <tr>
+        <td style="font-weight:600;">${d.empresa}</td>
+        <td><div>${d.contato||'—'}</div>${d.telefone||d.email?`<div class="contact-info">${[d.telefone?`<a href="tel:${d.telefone}">${d.telefone}</a>`:'',d.email?`<a href="mailto:${d.email}">${d.email}</a>`:''].filter(Boolean).join(' · ')}</div>`:''}</td>
+        <td style="color:var(--muted);">${d.segmento||'—'}</td>
+        <td>${d.resp||'—'}</td>
+        <td><span class="badge b-${d.status}">${STATUS_LABELS[d.status]}</span></td>
+        <td style="font-size:12px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastInteracao(d)}</td>
+        <td style="white-space:nowrap;"><button class="btn-ver" onclick="openModal('${d._id}')">ver</button> <button class="btn-del" onclick="delRow('${d._id}')">✕</button></td>
+      </tr>`).join('');
+  } else {
+    const rv = document.getElementById('view-resp');
+    rv.innerHTML = RESPONSAVEIS.map(resp => {
+      const items = filtered.filter(d=>d.resp===resp);
+      if(!items.length) return `<div class="resp-section"><div class="resp-header"><div class="resp-avatar">${getInitials(resp)}</div><div><div class="resp-name">${resp}</div><div class="resp-count">Nenhuma empresa</div></div></div></div>`;
+      return `<div class="resp-section">
+        <div class="resp-header">
+          <div class="resp-avatar">${getInitials(resp)}</div>
+          <div><div class="resp-name">${resp}</div><div class="resp-count">${items.length} empresa${items.length>1?'s':''}</div></div>
+        </div>
+        <div class="resp-cards">
+          ${items.map(d=>`
+            <div class="resp-card" onclick="openModal('${d._id}')">
+              <div class="resp-card-empresa">${d.empresa}</div>
+              <div class="resp-card-contato">${d.contato||'—'}${d.telefone?' · '+d.telefone:''}</div>
+              <div class="resp-card-footer">
+                <span class="badge b-${d.status}">${STATUS_LABELS[d.status]}</span>
+                <span class="resp-card-last">${lastInteracao(d)}</span>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
 };
 </script>
 </body>
