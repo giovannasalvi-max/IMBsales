@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/resumo.js": {
+      "runtime": "node@18"
+    }
+  }
+}
