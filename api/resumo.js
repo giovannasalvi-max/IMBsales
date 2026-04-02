@@ -15,10 +15,10 @@ Regras:
 - Baseado no que o cliente realmente sinalizou no histórico
 - Respeite o timing que o cliente pediu, mas sugira uma forma inteligente de manter contato até lá
 - No máximo 4 linhas
+- Sem asteriscos, sem negrito, sem marcadores. Só texto corrido.
 - Fale como um colega experiente e elegante falaria, não como script de telemarketing`
-    : `Você é um assistente de vendas objetivo. 
-Resuma em no máximo 3 linhas curtas: o que foi feito, onde parou e qual o próximo passo combinado. 
-Seja direto, sem enrolação.`;
+    : `Você é um assistente de vendas objetivo.
+Resuma em no máximo 3 linhas curtas e corridas, sem negrito, sem asteriscos, sem marcadores, sem títulos. Só texto simples: o que foi feito, onde parou e qual o próximo passo combinado.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
