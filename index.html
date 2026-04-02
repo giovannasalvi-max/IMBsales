@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CRM IMB — Innovation Meeting Brasil</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #F5F3EE;
+  --surface: #FFFFFF;
+  --surface2: #F0EDE6;
+  --border: #E2DDD4;
+  --text: #1A1814;
+  --muted: #8A8478;
+  --accent: #C8873A;
+  --accent2: #2D5F3F;
+  --danger: #C04040;
+  --info: #2B4F8A;
+  --r: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+input, select, textarea, button { font-family: 'DM Sans', sans-serif; }
+
+/* HEADER */
+.header { background: var(--text); color: #F5F3EE; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+.header-logo { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.9; }
+.header-sub { font-size: 11px; opacity: 0.5; font-family: 'DM Mono', monospace; }
+
+/* METRICS */
+.metrics-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 0; }
+.metric { padding: 0.5rem 1rem; border-right: 1px solid var(--border); }
+.metric:last-child { border-right: none; }
+.metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
+.metric-val { font-size: 24px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
+
+/* TOOLBAR */
+.toolbar { padding: 1rem 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.toolbar-left { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+select, input[type="text"], input[type="date"] {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 7px 12px; font-size: 13px; color: var(--text); outline: none;
+}
+select:focus, input:focus { border-color: var(--accent); }
+.btn-primary { background: var(--text); color: #F5F3EE; border: none; border-radius: var(--r); padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+.btn-primary:hover { opacity: 0.85; }
+
+/* TABLE */
+.table-wrap { padding: 0 1.5rem 1.5rem; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--r); overflow: hidden; border: 1px solid var(--border); font-size: 13px; }
+thead { background: var(--surface2); }
+th { text-align: left; padding: 10px 14px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.empty-row td { text-align: center; padding: 3rem; color: var(--muted); }
+
+/* BADGES */
+.badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+.b-identificada { background: #E8E4DC; color: #5A5548; }
+.b-abordada { background: #D6E8F5; color: #1A4A7A; }
+.b-em-negociacao { background: #FAEBD0; color: #7A4A10; }
+.b-proposta { background: #E8D6F5; color: #4A1A7A; }
+.b-fechada { background: #D6F5E0; color: #1A5A30; }
+.b-perdida { background: #F5D6D6; color: #7A1A1A; }
+
+/* ACTIONS */
+.btn-ver { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; color: var(--info); }
+.btn-ver:hover { background: #EEF3FB; }
+.btn-del { background: none; border: none; padding: 4px 8px; font-size: 14px; cursor: pointer; color: var(--muted); border-radius: 6px; }
+.btn-del:hover { background: #FBE8E8; color: var(--danger); }
+
+/* MODAL */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(26,24,20,0.5); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
+.overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 14px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal-head { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+.modal-empresa { font-size: 17px; font-weight: 600; }
+.modal-contato { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.btn-close { background: var(--surface2); border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 16px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.modal-body { padding: 1.25rem 1.5rem; }
+
+/* STATUS ROW */
+.status-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.status-row label { font-size: 12px; color: var(--muted); }
+
+/* RESUMO IA */
+.btn-ia { display: inline-flex; align-items: center; gap: 7px; background: var(--text); color: #F5F3EE; border: none; border-radius: var(--r); padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; margin-bottom: 1.25rem; transition: opacity 0.15s; }
+.btn-ia:hover { opacity: 0.82; }
+.btn-ia:disabled { opacity: 0.5; cursor: default; }
+.ia-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.resumo-box { background: #FFFBF5; border: 1px solid #F0D8B0; border-radius: var(--r); padding: 14px 16px; margin-bottom: 1.25rem; font-size: 13px; line-height: 1.7; color: var(--text); }
+.resumo-titulo { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+.spinner { width: 14px; height: 14px; border: 2px solid rgba(245,243,238,0.3); border-top-color: #F5F3EE; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* HISTORICO */
+.hist-titulo { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 10px; font-weight: 500; }
+.hist-item { border: 1px solid var(--border); border-radius: var(--r); padding: 12px 14px; margin-bottom: 10px; }
+.hist-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+.hist-data { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); }
+.hist-quem { font-size: 11px; background: var(--surface2); border-radius: 4px; padding: 2px 8px; color: var(--text); font-weight: 500; }
+.hist-bloco { margin-bottom: 7px; }
+.hist-bloco-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 3px; }
+.hist-bloco-texto { font-size: 13px; line-height: 1.6; color: var(--text); }
+.hist-eles { padding-left: 10px; border-left: 2px solid var(--border); color: var(--muted); }
+.hist-proximo { margin-top: 8px; font-size: 12px; color: var(--accent2); font-weight: 500; }
+
+/* NOVA INTERAÇÃO */
+.nova-form { background: var(--surface2); border-radius: var(--r); padding: 14px; margin-top: 1rem; }
+.nova-form-titulo { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 12px; font-weight: 500; }
+.fg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.fg-3 { grid-template-columns: 1fr 1fr 1fr; }
+.field label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.field input, .field select, .field textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 11px; font-size: 13px; color: var(--text); outline: none; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+.field textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+
+/* ADD FORM */
+.add-form-wrap { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1.25rem 1.5rem; display: none; }
+.add-form-titulo { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1rem; color: var(--muted); }
+
+/* LOADER */
+.loader { text-align: center; padding: 3rem; color: var(--muted); font-size: 13px; }
+
+@media (max-width: 600px) {
+  .fg { grid-template-columns: 1fr; }
+  .metrics-bar { grid-template-columns: repeat(3, 1fr); }
+  .metric { border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-logo">CRM · Innovation Meeting Brasil</div>
+    <div class="header-sub">Gestão de patrocínios 2026</div>
+  </div>
+</div>
+
+<div class="metrics-bar" id="metrics"></div>
+
+<div class="toolbar">
+  <div class="toolbar-left">
+    <select id="fil-status" onchange="render()">
+      <option value="">Todos os status</option>
+      <option value="identificada">Identificada</option>
+      <option value="abordada">Abordada</option>
+      <option value="em-negociacao">Em negociação</option>
+      <option value="proposta">Proposta enviada</option>
+      <option value="fechada">Fechada</option>
+      <option value="perdida">Perdida</option>
+    </select>
+    <select id="fil-resp" onchange="render()">
+      <option value="">Todos os responsáveis</option>
+      <option>André</option><option>Gabriel</option><option>Giovanna</option><option>Chefe</option>
+    </select>
+    <input type="text" id="fil-busca" placeholder="Buscar empresa..." oninput="render()" style="min-width:160px;"/>
+  </div>
+  <button class="btn-primary" onclick="toggleAddForm()">+ Adicionar empresa</button>
+</div>
+
+<div class="add-form-wrap" id="addFormWrap">
+  <div class="add-form-titulo">Nova empresa</div>
+  <div class="fg" style="margin-bottom:10px;">
+    <div class="field"><label>Empresa *</label><input id="f-empresa" placeholder="Nome da empresa"/></div>
+    <div class="field"><label>Contato na empresa</label><input id="f-contato" placeholder="Nome do contato"/></div>
+  </div>
+  <div class="fg fg-3" style="margin-bottom:12px;">
+    <div class="field"><label>Segmento</label>
+      <select id="f-segmento">
+        <option value="">— segmento —</option>
+        <option>Serviços Financeiros</option><option>Indústrias</option>
+        <option>Varejo e Atacado</option><option>Comércio Eletrônico</option>
+        <option>Saúde</option><option>Energia e Utilities</option>
+        <option>Agronegócio</option><option>Educação</option>
+        <option>Transporte e Logística</option><option>Construção Civil e Imobiliária</option>
+        <option>Tecnologia</option><option>Outro</option>
+      </select>
+    </div>
+    <div class="field"><label>Responsável</label>
+      <select id="f-resp">
+        <option value="">— responsável —</option>
+        <option>André</option><option>Gabriel</option><option>Giovanna</option><option>Chefe</option>
+      </select>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="f-status">
+        <option value="identificada">Identificada</option>
+        <option value="abordada">Abordada</option>
+        <option value="em-negociacao">Em negociação</option>
+        <option value="proposta">Proposta enviada</option>
+        <option value="fechada">Fechada</option>
+        <option value="perdida">Perdida</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="addEmpresa()">Salvar empresa</button>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Empresa</th><th>Contato</th><th>Segmento</th>
+        <th>Responsável</th><th>Status</th><th>Última interação</th><th></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"><tr><td colspan="7" class="loader">Carregando...</td></tr></tbody>
+  </table>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeOverlay(event)">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-empresa" id="m-empresa"></div>
+        <div class="modal-contato" id="m-contato"></div>
+      </div>
+      <button class="btn-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="status-row">
+        <label>Status:</label>
+        <select id="m-status" onchange="updateStatus()" style="width:auto;">
+          <option value="identificada">Identificada</option>
+          <option value="abordada">Abordada</option>
+          <option value="em-negociacao">Em negociação</option>
+          <option value="proposta">Proposta enviada</option>
+          <option value="fechada">Fechada</option>
+          <option value="perdida">Perdida</option>
+        </select>
+      </div>
+
+      <button class="btn-ia" id="btnIA" onclick="gerarResumo()">
+        <span class="ia-dot" id="ia-dot"></span>
+        <span id="ia-label">Resumir negociação com IA</span>
+      </button>
+      <div id="resumo-box" style="display:none;"></div>
+
+      <div class="hist-titulo">Histórico de interações</div>
+      <div id="hist-list"></div>
+
+      <div class="nova-form">
+        <div class="nova-form-titulo">Registrar nova interação</div>
+        <div class="fg" style="margin-bottom:10px;">
+          <div class="field"><label>Data</label><input type="date" id="ne-data"/></div>
+          <div class="field"><label>Quem fez o contato</label>
+            <select id="ne-quem">
+              <option>André</option><option>Gabriel</option><option>Giovanna</option><option>Chefe</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg" style="margin-bottom:10px;">
+          <div class="field"><label>O que a gente disse / fez</label><textarea id="ne-nos" placeholder="Ex: Enviei o mídia kit e expliquei os pacotes..."></textarea></div>
+          <div class="field"><label>O que o contato respondeu</label><textarea id="ne-eles" placeholder="Ex: Disse que vai levar pro board..."></textarea></div>
+        </div>
+        <div class="field" style="margin-bottom:12px;"><label>Próximo passo</label><input id="ne-proximo" placeholder="Ex: Ligar na quinta para confirmar interesse"/></div>
+        <button class="btn-primary" onclick="addEntry()">Salvar interação</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyATBNZPaFPX86QWVbN9wbyZnoBC7U6eIR0",
+  authDomain: "crm-imb.firebaseapp.com",
+  projectId: "crm-imb",
+  storageBucket: "crm-imb.firebasestorage.app",
+  messagingSenderId: "517332655579",
+  appId: "1:517332655579:web:01bf7886207f20c4a79bfe"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const STATUS_LABELS = {
+  'identificada':'Identificada','abordada':'Abordada','em-negociacao':'Em negociação',
+  'proposta':'Proposta enviada','fechada':'Fechada','perdida':'Perdida'
+};
+const STATUS_ORDER = ['identificada','abordada','em-negociacao','proposta','fechada','perdida'];
+
+let data = [];
+let currentId = null;
+
+// LIVE SYNC
+onSnapshot(collection(db, 'empresas'), snap => {
+  data = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
+  data.sort((a,b) => (b.criadoEm?.seconds||0) - (a.criadoEm?.seconds||0));
+  render();
+});
+
+window.toggleAddForm = () => {
+  const w = document.getElementById('addFormWrap');
+  w.style.display = w.style.display === 'none' || !w.style.display ? 'block' : 'none';
+};
+
+window.addEmpresa = async () => {
+  const empresa = document.getElementById('f-empresa').value.trim();
+  if (!empresa) { alert('Informe o nome da empresa.'); return; }
+  await addDoc(collection(db, 'empresas'), {
+    empresa,
+    contato: document.getElementById('f-contato').value.trim(),
+    segmento: document.getElementById('f-segmento').value,
+    resp: document.getElementById('f-resp').value,
+    status: document.getElementById('f-status').value,
+    historico: [],
+    criadoEm: serverTimestamp()
+  });
+  ['f-empresa','f-contato'].forEach(id => document.getElementById(id).value='');
+  ['f-segmento','f-resp'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('f-status').value='identificada';
+  document.getElementById('addFormWrap').style.display='none';
+};
+
+window.delRow = async (id) => {
+  if (!confirm('Remover esta empresa?')) return;
+  await deleteDoc(doc(db, 'empresas', id));
+};
+
+window.openModal = (id) => {
+  currentId = id;
+  const row = data.find(d=>d._id===id); if(!row) return;
+  document.getElementById('m-empresa').textContent = row.empresa;
+  document.getElementById('m-contato').textContent = row.contato || '';
+  document.getElementById('m-status').value = row.status;
+  document.getElementById('ne-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('resumo-box').style.display='none';
+  document.getElementById('resumo-box').innerHTML='';
+  document.getElementById('btnIA').disabled=false;
+  document.getElementById('ia-label').textContent='Resumir negociação com IA';
+  document.getElementById('ia-dot').style.background='var(--accent)';
+  renderHist(row);
+  document.getElementById('overlay').classList.add('open');
+};
+
+window.closeModal = () => { document.getElementById('overlay').classList.remove('open'); currentId=null; };
+window.closeOverlay = (e) => { if(e.target===document.getElementById('overlay')) window.closeModal(); };
+
+window.updateStatus = async () => {
+  if(!currentId) return;
+  await updateDoc(doc(db,'empresas',currentId), { status: document.getElementById('m-status').value });
+};
+
+window.addEntry = async () => {
+  const row = data.find(d=>d._id===currentId); if(!row) return;
+  const nos = document.getElementById('ne-nos').value.trim();
+  const eles = document.getElementById('ne-eles').value.trim();
+  if (!nos && !eles) { alert('Registre ao menos o que foi dito.'); return; }
+  const entry = {
+    data: document.getElementById('ne-data').value || new Date().toLocaleDateString('pt-BR'),
+    quem: document.getElementById('ne-quem').value,
+    nos, eles,
+    proximo: document.getElementById('ne-proximo').value.trim()
+  };
+  const hist = [...(row.historico||[]), entry];
+  await updateDoc(doc(db,'empresas',currentId), { historico: hist });
+  ['ne-nos','ne-eles','ne-proximo'].forEach(id => document.getElementById(id).value='');
+  const updated = {...row, historico: hist};
+  renderHist(updated);
+};
+
+window.gerarResumo = async () => {
+  const row = data.find(d=>d._id===currentId); if(!row) return;
+  if (!row.historico?.length) { alert('Nenhuma interação registrada para resumir.'); return; }
+  const btn = document.getElementById('btnIA');
+  const label = document.getElementById('ia-label');
+  const dot = document.getElementById('ia-dot');
+  const box = document.getElementById('resumo-box');
+  btn.disabled=true;
+  label.innerHTML='<span style="display:inline-flex;align-items:center;gap:6px;"><span class="spinner"></span> Analisando...</span>';
+
+  const txt = row.historico.map((h,i) => {
+    let t = `Interação ${i+1} — ${h.data||'sem data'} — por ${h.quem||'?'}\n`;
+    if(h.nos) t+=`Nós: ${h.nos}\n`;
+    if(h.eles) t+=`Eles: ${h.eles}\n`;
+    if(h.proximo) t+=`Próximo passo: ${h.proximo}\n`;
+    return t;
+  }).join('\n');
+
+  const prompt = `Você é um assistente de vendas do Innovation Meeting Brasil, evento B2B imersivo de 4 dias reunindo mais de 150 CIOs, CTOs, CISOs no Enotel Resort Porto de Galinhas, de 30 de julho a 2 de agosto de 2026. A equipe prospecta patrocinadores.
+
+Histórico com "${row.empresa}"${row.contato?`, contato: ${row.contato}`:''}. Status: ${STATUS_LABELS[row.status]}.
+
+${txt}
+
+Escreva um resumo executivo direto (máximo 5 linhas) em português cobrindo:
+1. Em que pé está a negociação
+2. Interesse ou resistência demonstrada
+3. Próximo passo mais urgente
+
+Só o resumo, sem títulos nem marcadores.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+    });
+    const json = await res.json();
+    const texto = json.content?.map(c=>c.text||'').join('') || 'Não foi possível gerar o resumo.';
+    box.innerHTML=`<div class="resumo-titulo">Resumo da negociação</div><div>${texto}</div>`;
+    box.className='resumo-box'; box.style.display='block';
+  } catch(e) {
+    box.innerHTML=`<div class="resumo-titulo">Erro</div><div>Não foi possível conectar à IA.</div>`;
+    box.className='resumo-box'; box.style.display='block';
+  }
+  btn.disabled=false;
+  label.textContent='Resumir negociação com IA';
+};
+
+function renderHist(row) {
+  const el = document.getElementById('hist-list');
+  if(!row.historico?.length) { el.innerHTML='<p style="font-size:13px;color:var(--muted);margin-bottom:1rem;">Nenhuma interação ainda.</p>'; return; }
+  el.innerHTML=[...row.historico].reverse().map(h=>`
+    <div class="hist-item">
+      <div class="hist-meta">
+        <span class="hist-data">${h.data||''}</span>
+        <span class="hist-quem">${h.quem||''}</span>
+      </div>
+      ${h.nos?`<div class="hist-bloco"><div class="hist-bloco-label">A gente disse</div><div class="hist-bloco-texto">${h.nos}</div></div>`:''}
+      ${h.eles?`<div class="hist-bloco"><div class="hist-bloco-label">Eles responderam</div><div class="hist-bloco-texto hist-eles">${h.eles}</div></div>`:''}
+      ${h.proximo?`<div class="hist-proximo">Próximo passo: ${h.proximo}</div>`:''}
+    </div>`).join('');
+}
+
+function lastInteracao(row) {
+  if(!row.historico?.length) return '—';
+  const last = row.historico[row.historico.length-1];
+  let txt = last.data ? last.data+' · ' : '';
+  const msg = last.eles||last.nos||'';
+  return txt + msg.slice(0,50) + (msg.length>50?'...':'');
+}
+
+window.render = () => {
+  const fs = document.getElementById('fil-status').value;
+  const fr = document.getElementById('fil-resp').value;
+  const fb = document.getElementById('fil-busca').value.toLowerCase();
+  const filtered = data.filter(d=>
+    (!fs||d.status===fs)&&(!fr||d.resp===fr)&&
+    (!fb||d.empresa?.toLowerCase().includes(fb)||(d.contato||'').toLowerCase().includes(fb))
+  );
+
+  const counts = {};
+  STATUS_ORDER.forEach(s=>counts[s]=0);
+  data.forEach(d=>{if(counts[d.status]!==undefined)counts[d.status]++;});
+  document.getElementById('metrics').innerHTML=STATUS_ORDER.map(s=>`
+    <div class="metric">
+      <div class="metric-label">${STATUS_LABELS[s]}</div>
+      <div class="metric-val">${counts[s]}</div>
+    </div>`).join('');
+
+  const tb = document.getElementById('tbody');
+  if(!filtered.length){
+    tb.innerHTML=`<tr class="empty-row"><td colspan="7">Nenhuma empresa cadastrada ainda.</td></tr>`;return;
+  }
+  tb.innerHTML=filtered.map(d=>`
+    <tr>
+      <td style="font-weight:600;">${d.empresa}</td>
+      <td>${d.contato||'—'}</td>
+      <td style="color:var(--muted);">${d.segmento||'—'}</td>
+      <td>${d.resp||'—'}</td>
+      <td><span class="badge b-${d.status}">${STATUS_LABELS[d.status]}</span></td>
+      <td style="font-size:12px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${lastInteracao(d)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn-ver" onclick="openModal('${d._id}')">ver</button>
+        <button class="btn-del" onclick="delRow('${d._id}')">✕</button>
+      </td>
+    </tr>`).join('');
+};
+</script>
+</body>
+</html>
